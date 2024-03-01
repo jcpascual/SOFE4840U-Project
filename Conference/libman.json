@@ -4,7 +4,7 @@
   "libraries": [
     {
       "library": "@microsoft/signalr@latest",
-      "destination": "wwwroot/js/signalr",
+      "destination": "wwwroot/lib/signalr",
       "files": [
         "dist/browser/signalr.js",
         "dist/browser/signalr.min.js"
@@ -13,7 +13,7 @@
     {
       "provider": "cdnjs",
       "library": "simple-peer@9.11.1",
-      "destination": "wwwroot/js/simple-peer",
+      "destination": "wwwroot/lib/simple-peer",
       "files": [
         "simplepeer.min.js"
       ]
