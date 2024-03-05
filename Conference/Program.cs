@@ -1,7 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+var services = builder.Services;
+
+services.AddRazorPages();
+services.AddSignalR();
 
 var app = builder.Build();
 
