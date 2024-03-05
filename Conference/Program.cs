@@ -1,7 +1,11 @@
+using Conference.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var services = builder.Services;
+
+services.AddSingleton<CallCoordinatorService>();
 
 services.AddRazorPages();
 services.AddSignalR();
