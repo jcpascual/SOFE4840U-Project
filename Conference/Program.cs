@@ -1,3 +1,4 @@
+using Conference.Hubs;
 using Conference.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,5 +29,7 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+app.MapHub<CallHub>("/hubs/call");
 
 app.Run();
