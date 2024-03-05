@@ -1,0 +1,106 @@
+@page "/call/{callId}"
+@model CallModel
+@{
+    ViewData["Title"] = "Call";
+}
+
+<h2>Call</h2>
+
+<div class="container">
+    <div class="row p-1">
+        <div class="col-1">User</div>
+        <div class="col-5"><input type="text" id="userInput" /></div>
+    </div>
+    <div class="row p-1">
+        <div class="col-1">Message</div>
+        <div class="col-5"><input type="text" class="w-100" id="messageInput" /></div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6 text-end">
+            <input type="button" id="sendButton" value="Send Message" />
+        </div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6">
+            <hr />
+        </div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6">
+            <ul id="messagesList"></ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/lib/simple-peer/simplepeer.min.js"></script>
+
+    <script>
+        const callId = "@Model.CallId";
+
+        const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/call?callId=" + callId).build();
+        
+        var p;
+        
+        connection.on("StartSimplePeerConnection", function (initiatorId) {
+            p = new window.SimplePeer({
+                initiator: connection.connectionId === initiatorId,
+                trickle: false
+            });
+            
+            p.on('error', err => console.log('error', err));
+            
+            p.on('signal', data => {
+                const json = JSON.stringify(data);
+                
+                console.log('SP-SIGNAL', json);
+                
+                connection.invoke("SendSimplePeerSignal", json).catch(function (err) {
+                    return console.error(err.toString());
+                });
+            });
+            
+            p.on('connect', () => {
+                document.getElementById("sendButton").disabled = false;
+                
+                document.getElementById("sendButton").addEventListener("click", function (event) {
+                    const user = document.getElementById("userInput").value;
+                    const message = document.getElementById("messageInput").value;
+                    
+                    p.send(user + ' says ' + message);
+                    
+                    event.preventDefault();
+                });
+            });
+            
+            p.on('data', (data) => {
+                var li = document.createElement("li");
+                document.getElementById("messagesList").appendChild(li);
+                // We can assign user-supplied strings to an element's textContent because it
+                // is not interpreted as markup. If you're assigning in any other way, you 
+                // should be aware of possible script injection concerns.
+                li.textContent = data;
+            });
+            
+            p.on('error', (error) => {
+                console.error(error.message);
+                
+                connection.stop();
+            });
+        });
+        
+        connection.on("ReceiveSimplePeerSignal", function (data) {
+            p.signal(JSON.parse(data));
+        });
+        
+        connection.on("PeerDisconnected", function (data) {
+            p.destroy();
+        });
+        
+        connection.start().catch(function (err) {
+            return console.error(err.toString());
+        });
+    </script>
+}
