@@ -1,5 +1,6 @@
 using Conference.Hubs;
 using Conference.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using MySqlConnector;
 using MySqlConnector.Logging;
 
@@ -15,6 +16,8 @@ services.AddSingleton<DatabaseService>();
 
 services.AddRazorPages();
 services.AddSignalR();
+
+services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
 
 var app = builder.Build();
 
@@ -34,6 +37,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
