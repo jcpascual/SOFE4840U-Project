@@ -11,6 +11,7 @@ var services = builder.Services;
 services.AddMySqlDataSource(builder.Configuration.GetConnectionString("Default")!);
 
 services.AddSingleton<CallCoordinatorService>();
+services.AddSingleton<DatabaseService>();
 
 services.AddRazorPages();
 services.AddSignalR();
