@@ -1,0 +1,39 @@
+@page "/register"
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<h2>Register</h2>
+
+<form action="/register" method="POST">
+    @Html.AntiForgeryToken()
+    <div class="container">
+        @if (Model.RegistrationResult == RegisterModel.RegisterResult.UsernameTaken)
+        {
+            <div class="alert alert-danger" role="alert">
+                Your chosen username has already been taken. Please enter a different username.
+            </div>
+        }
+        else if (Model.RegistrationResult == RegisterModel.RegisterResult.Success)
+        {
+            <div class="alert alert-success" role="alert">
+                You have now been registered! You can now <a href="/login">log in.</a>
+            </div>
+        }
+        
+        <div class="row p-1">
+            <div class="col-1"><label for="usernameInput">Username </label></div>
+            <div class="col-5"><input type="text" name="username" id="usernameInput" class="w-100"/></div>
+        </div>
+        <div class="row p-1">
+            <div class="col-1"><label for="passwordInput">Password </label></div>
+            <div class="col-5"><input type="password" name="password" id="passwordInput" class="w-100"/></div>
+        </div>
+        <div class="row p-1">
+            <div class="col-6 text-end">
+                <input type="submit" id="registerButton" value="Register"/>
+            </div>
+        </div>
+    </div>
+</form>
