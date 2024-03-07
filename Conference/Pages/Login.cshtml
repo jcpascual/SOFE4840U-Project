@@ -1,0 +1,33 @@
+@page "/Login"
+@model LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h2>Login</h2>
+
+<form action="/login" method="POST">
+    @Html.AntiForgeryToken()
+    <div class="container">
+        @if (Model.LoginFailed)
+        {
+            <div class="alert alert-danger" role="alert">
+                Invalid credentials. Please try again.
+            </div>
+        }
+        
+        <div class="row p-1">
+            <div class="col-1"><label for="usernameInput">Username </label></div>
+            <div class="col-5"><input type="text" name="username" id="usernameInput" class="w-100"/></div>
+        </div>
+        <div class="row p-1">
+            <div class="col-1"><label for="passwordInput">Password </label></div>
+            <div class="col-5"><input type="password" name="password" id="passwordInput" class="w-100"/></div>
+        </div>
+        <div class="row p-1">
+            <div class="col-6 text-end">
+                <input type="submit" id="registerButton" value="Log in"/>
+            </div>
+        </div>
+    </div>
+</form>
