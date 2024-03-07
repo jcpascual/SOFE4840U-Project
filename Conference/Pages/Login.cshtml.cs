@@ -64,6 +64,6 @@ public class LoginModel : PageModel
 
         _logger.LogInformation("User {name} logged in at {Time}", user.Username, DateTime.UtcNow);
 
-        return Content("OK");
+        return Redirect("/");
     }
 }
