@@ -13,4 +13,10 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="MySqlConnector" Version="2.3.5" />
+      <PackageReference Include="MySqlConnector.DependencyInjection" Version="2.3.5" />
+      <PackageReference Include="MySqlConnector.Logging.Microsoft.Extensions.Logging" Version="2.1.0" />
+    </ItemGroup>
+
 </Project>
