@@ -17,7 +17,13 @@ services.AddSingleton<DatabaseService>();
 services.AddRazorPages();
 services.AddSignalR();
 
-services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
+services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+{
+    options.LoginPath = "/login";
+    options.LogoutPath = "/logout";
+    options.AccessDeniedPath = "/forbidden";
+    options.ReturnUrlParameter = "redirect";
+});
 
 var app = builder.Build();
 
