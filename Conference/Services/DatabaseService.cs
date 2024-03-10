@@ -78,4 +78,29 @@ public class DatabaseService
 
         return ReadUser(reader);
     }
+    
+    public List<ConferenceContact> GetContactsForUser(ConferenceUser user)
+    {
+        using MySqlConnection connection = _dataSource.OpenConnection();
+        using MySqlCommand command = connection.CreateCommand();
+        
+        command.CommandText = @"SELECT id, ownerId, targetId FROM contacts WHERE ownerId = @id;";
+        command.Parameters.AddWithValue("@id", user.Id);
+        
+        using MySqlDataReader reader = command.ExecuteReader();
+
+        List<ConferenceContact> contacts = new List<ConferenceContact>();
+
+        while (reader.Read())
+        {
+            contacts.Add(new ConferenceContact()
+            {
+                Id = reader.GetInt32(0),
+                OwnerId = reader.GetInt32(1),
+                TargetId = reader.GetInt32(2)
+            });
+        }
+
+        return contacts;
+    }
 }
