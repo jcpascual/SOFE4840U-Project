@@ -3,3 +3,11 @@ CREATE TABLE IF NOT EXISTS users(
     username VARCHAR(255),
     password VARCHAR(255)
 );
+
+CREATE TABLE IF NOT EXISTS contacts(
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    ownerId INT NOT NULL,
+    targetId INT NOT NULL,
+    CONSTRAINT fk_ownerId FOREIGN KEY (ownerId) REFERENCES users(id),
+    CONSTRAINT fk_targetId FOREIGN KEY (targetId) REFERENCES users(id)
+);
