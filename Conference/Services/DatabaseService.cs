@@ -65,4 +65,17 @@ public class DatabaseService
 
         return ReadUser(reader);
     }
+    
+    public ConferenceUser? GetUser(int id)
+    {
+        using MySqlConnection connection = _dataSource.OpenConnection();
+        using MySqlCommand command = connection.CreateCommand();
+        
+        command.CommandText = @"SELECT id, username, password FROM users WHERE id = @id;";
+        command.Parameters.AddWithValue("@id", id);
+        
+        using MySqlDataReader reader = command.ExecuteReader();
+
+        return ReadUser(reader);
+    }
 }
