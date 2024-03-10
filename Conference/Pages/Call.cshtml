@@ -7,27 +7,47 @@
 <h2>Call</h2>
 
 <div class="container">
-    <div class="row p-1">
-        <div class="col-1">User</div>
-        <div class="col-5"><input type="text" id="userInput" /></div>
-    </div>
-    <div class="row p-1">
-        <div class="col-1">Message</div>
-        <div class="col-5"><input type="text" class="w-100" id="messageInput" /></div>
-    </div>
-    <div class="row p-1">
-        <div class="col-6 text-end">
-            <input type="button" id="sendButton" value="Send Message" />
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="text-tab" data-bs-toggle="tab" data-bs-target="#text" type="button" role="tab" aria-controls="text" aria-selected="true">Text</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="av-tab" data-bs-toggle="tab" data-bs-target="#av" type="button" role="tab" aria-controls="av" aria-selected="false">Video</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="text" role="tabpanel" aria-labelledby="text-tab">
+            <div class="row p-1">
+                <div class="col-1">User</div>
+                <div class="col-5"><input type="text" id="userInput" /></div>
+            </div>
+            <div class="row p-1">
+                <div class="col-1">Message</div>
+                <div class="col-5"><input type="text" class="w-100" id="messageInput" /></div>
+            </div>
+            <div class="row p-1">
+                <div class="col-6 text-end">
+                    <input type="button" id="sendButton" value="Send Message" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-6">
+                    <hr />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-6">
+                    <ul id="messagesList"></ul>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="row p-1">
-        <div class="col-6">
-            <hr />
-        </div>
-    </div>
-    <div class="row p-1">
-        <div class="col-6">
-            <ul id="messagesList"></ul>
+        <div class="tab-pane fade" id="av" role="tabpanel" aria-labelledby="av-tab">
+            <div class="row p-1">
+                <div class="col-6">
+                    <input type="button" id="videoButton" value="Start Video" />
+                </div>
+            </div>
+            <video id="remoteVideo" class="w-100" playsinline></video>
         </div>
     </div>
 </div>
@@ -42,12 +62,21 @@
 
         const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/call?callId=" + callId).build();
         
+        var localStream;
         var p;
         
         connection.on("StartSimplePeerConnection", function (initiatorId) {
             p = new window.SimplePeer({
                 initiator: connection.connectionId === initiatorId,
-                trickle: false
+                trickle: false,
+                iceServers: [
+                     {
+                       urls: [
+                         'stun:stun.l.google.com:19302',
+                         'stun:global.stun.twilio.com:3478'
+                       ]
+                     }
+                   ]
             });
             
             p.on('error', err => console.log('error', err));
@@ -73,6 +102,18 @@
                     
                     event.preventDefault();
                 });
+                
+                document.getElementById("videoButton").addEventListener("click", function (event) {
+                    navigator.mediaDevices.getUserMedia({
+                        audio: false,
+                        video: true,
+                    }).then(function (stream) {
+                        p.addStream(stream);
+                    }).catch(function (err) {
+                        console.error(err);
+                    });
+                    event.preventDefault();
+                });
             });
             
             p.on('data', (data) => {
@@ -83,6 +124,13 @@
                 // should be aware of possible script injection concerns.
                 li.textContent = data;
             });
+            
+            p.on('stream', stream => {
+                const video = document.querySelector('#remoteVideo');
+                video.srcObject = stream;
+                
+                video.play();
+            })
             
             p.on('error', (error) => {
                 console.error(error.message);
@@ -98,9 +146,9 @@
         connection.on("PeerDisconnected", function (data) {
             p.destroy();
         });
-        
+
         connection.start().catch(function (err) {
-            return console.error(err.toString());
+            return console.error(err);
         });
     </script>
 }
