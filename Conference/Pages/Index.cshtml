@@ -1,6 +1,7 @@
 ﻿@page
 @using Conference.Models
 @using Conference.Services
+@inject CallCoordinatorService CallCoordinator
 @inject DatabaseService Database
 @model IndexModel
 @{
@@ -19,6 +20,26 @@
 <ul>
     @foreach (ConferenceUser contactUser in contactsUsers)
     {
-        <li>@contactUser.Username</li>
+        if (CallCoordinator.IsUserAvailable(contactUser))
+        {
+            <li><a href="#">@contactUser.Username</a></li>
+        }
+        else
+        {
+            <li>@contactUser.Username (offline)</li>
+        }
     }
 </ul>
+
+@section Scripts
+{
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+    
+    <script>
+        const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/index").build();
+        
+        connection.start().catch(function (err) {
+            return console.error(err);
+        });
+    </script>
+}
