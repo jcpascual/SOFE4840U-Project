@@ -10,11 +10,27 @@ public class CallCoordinatorService
 {
     private ILogger<CallCoordinatorService> _logger;
 
+    private ConcurrentDictionary<int, bool> _availableStatus = new ConcurrentDictionary<int, bool>();
     private ConcurrentDictionary<string, ConferenceCall> _calls = new ConcurrentDictionary<string, ConferenceCall>();
 
     public CallCoordinatorService(ILogger<CallCoordinatorService> logger)
     {
         _logger = logger;
+    }
+
+    public void UpdateUserAvailableStatus(ConferenceUser user, bool status)
+    {
+        _availableStatus[user.Id] = status;
+    }
+
+    public bool IsUserAvailable(ConferenceUser user)
+    {
+        if (_availableStatus.TryGetValue(user.Id, out bool status))
+        {
+            return status;
+        }
+
+        return false;
     }
 
     public ConferenceCall GetOrCreateCall(string callId)
