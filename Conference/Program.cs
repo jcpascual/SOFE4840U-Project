@@ -48,6 +48,7 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 
+app.MapHub<IndexHub>("/hubs/index");
 app.MapHub<CallHub>("/hubs/call");
 
 app.Run();
