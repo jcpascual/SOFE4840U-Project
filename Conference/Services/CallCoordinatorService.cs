@@ -10,27 +10,37 @@ public class CallCoordinatorService
 {
     private ILogger<CallCoordinatorService> _logger;
 
-    private ConcurrentDictionary<int, bool> _availableStatus = new ConcurrentDictionary<int, bool>();
+    private ConcurrentDictionary<int, ConferenceUserStatus> _userStatuses = new ConcurrentDictionary<int, ConferenceUserStatus>();
     private ConcurrentDictionary<string, ConferenceCall> _calls = new ConcurrentDictionary<string, ConferenceCall>();
 
     public CallCoordinatorService(ILogger<CallCoordinatorService> logger)
     {
         _logger = logger;
     }
-
-    public void UpdateUserAvailableStatus(ConferenceUser user, bool status)
+    
+    public ConferenceUserStatus GetUserStatus(ConferenceUser user)
     {
-        _availableStatus[user.Id] = status;
-    }
-
-    public bool IsUserAvailable(ConferenceUser user)
-    {
-        if (_availableStatus.TryGetValue(user.Id, out bool status))
+        if (_userStatuses.TryGetValue(user.Id, out ConferenceUserStatus status))
         {
             return status;
         }
 
-        return false;
+        return ConferenceUserStatus.Offline;
+    }
+
+    public bool IsUserAvailable(ConferenceUser user)
+    {
+        return GetUserStatus(user) == ConferenceUserStatus.Online;
+    }
+
+    public bool IsUserConnected(ConferenceUser user)
+    {
+        return GetUserStatus(user) != ConferenceUserStatus.Offline;
+    }
+    
+    public void SetUserStatus(ConferenceUser user, ConferenceUserStatus status)
+    {
+        _userStatuses[user.Id] = status;
     }
 
     public ConferenceCall GetOrCreateCall(string callId)

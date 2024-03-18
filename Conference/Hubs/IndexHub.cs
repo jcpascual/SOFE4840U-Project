@@ -22,19 +22,31 @@ public class IndexHub : Hub
         string username = Context.GetHttpContext()!.User.Identity!.Name!;
         
         ConferenceUser user = _databaseService.GetUser(username)!;
-
-        Context.Items[UserInstanceKey] = user;
         
-        _coordinatorService.UpdateUserAvailableStatus(user, true);
+        if (!_coordinatorService.IsUserConnected(user))
+        {
+            Context.Items[UserInstanceKey] = user;
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, user.Username);
+        
+            _coordinatorService.SetUserStatus(user, ConferenceUserStatus.Online);
+        }
+        else
+        {
+            await Clients.Client(Context.ConnectionId).SendAsync("DisconnectDuplicate");
+        }
         
         await base.OnConnectedAsync();
     }
     
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        ConferenceUser user = (ConferenceUser)Context.Items[UserInstanceKey]!;
-        
-        _coordinatorService.UpdateUserAvailableStatus(user, false);
+        ConferenceUser? user = (ConferenceUser?)Context.Items[UserInstanceKey];
+
+        if (user != null)
+        {
+            _coordinatorService.SetUserStatus(user, ConferenceUserStatus.Offline);
+        }
         
         await base.OnDisconnectedAsync(exception);
     }
