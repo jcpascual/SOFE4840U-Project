@@ -32,6 +32,16 @@ public class CallCoordinatorService
 
         return state;
     }
+
+    public string? GetIndexConnectionId(ConferenceUser user)
+    {
+        return GetUserIndexState(user).ConnectionId;
+    }
+
+    public void SetIndexConnectionId(ConferenceUser user, string? connectionId)
+    {
+        GetUserIndexState(user).ConnectionId = connectionId;
+    }
     
     public ConferenceUserStatus GetUserStatus(ConferenceUser user)
     {

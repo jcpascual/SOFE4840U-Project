@@ -27,8 +27,7 @@ public class IndexHub : Hub
         {
             Context.Items[UserInstanceKey] = user;
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, user.Username);
-        
+            _coordinatorService.SetIndexConnectionId(user, Context.ConnectionId);
             _coordinatorService.SetUserStatus(user, ConferenceUserStatus.Online);
         }
         else
@@ -45,6 +44,7 @@ public class IndexHub : Hub
 
         if (user != null)
         {
+            _coordinatorService.SetIndexConnectionId(user, null);
             _coordinatorService.SetUserStatus(user, ConferenceUserStatus.Offline);
         }
         
