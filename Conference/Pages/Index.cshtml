@@ -31,12 +31,35 @@
     }
 </ul>
 
+<div id="dupe-error-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Error</h5>
+            </div>
+            <div class="modal-body">
+                <p>You are already connected to this web app.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @section Scripts
 {
     <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
     
     <script>
         const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/index").build();
+        
+        connection.on("DisconnectDuplicate", function (data) {
+            $("#dupe-error-modal").modal({backdrop: 'static', keyboard: false});
+            $("#dupe-error-modal").modal('show');
+            
+            console.log("disconnect dupe");
+
+            connection.stop();
+        });
         
         connection.start().catch(function (err) {
             return console.error(err);
