@@ -63,12 +63,31 @@ public class CallCoordinatorService
         GetUserIndexState(user).Status = status;
     }
 
-    public ConferenceCall GetOrCreateCall(string callId)
+    public ConferenceCall CreateCall()
     {
-        if (_calls.TryGetValue(callId, out ConferenceCall? foundCall))
+        string GenerateRandomId()
         {
-            return foundCall;
+            const string validChars = "ABCDEFHIJKLMNOPQRSTUVWXYZabcdefhijklmnopqrstuvwxyz0123456789";
+            const int maxLength = 10;
+
+            StringBuilder builder = new StringBuilder();
+        
+            Random random = new Random();
+
+            for (int i = 0; i < maxLength; i++)
+            {
+                builder.Append(validChars[random.Next(validChars.Length)]);
+            }
+
+            return builder.ToString();
         }
+
+        string callId;
+
+        do
+        {
+            callId = GenerateRandomId();
+        } while (_calls.ContainsKey(callId));
         
         _logger.LogWarning("New call: {callId}", callId);
         
@@ -77,6 +96,16 @@ public class CallCoordinatorService
         _calls[callId] = call;
 
         return call;
+    }
+
+    public ConferenceCall? GetCall(string callId)
+    {
+        if (_calls.TryGetValue(callId, out ConferenceCall? foundCall))
+        {
+            return foundCall;
+        }
+
+        return null;
     }
 
     public void RemoveCall(string callId)

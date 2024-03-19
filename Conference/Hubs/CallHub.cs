@@ -21,7 +21,7 @@ public class CallHub : Hub
     {
         string callId = Context.GetHttpContext()!.Request.Query["callId"]!;
         
-        ConferenceCall call = _callCoordinator.GetOrCreateCall(callId);
+        ConferenceCall call = _callCoordinator.GetCall(callId)!;
         
         await Groups.AddToGroupAsync(Context.ConnectionId, callId);
 
