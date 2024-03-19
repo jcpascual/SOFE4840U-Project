@@ -4,5 +4,5 @@ public enum ConferenceUserStatus
 {
     Offline,
     Online,
-    ReceivingCallRequest
+    InCallRequest
 }
