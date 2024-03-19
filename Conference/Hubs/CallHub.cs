@@ -21,17 +21,20 @@ public class CallHub : Hub
     {
         string callId = Context.GetHttpContext()!.Request.Query["callId"]!;
         
-        ConferenceCall call = _callCoordinator.GetCall(callId)!;
-        
-        await Groups.AddToGroupAsync(Context.ConnectionId, callId);
+        ConferenceCall? call = _callCoordinator.GetCall(callId);
 
-        Context.Items[CallInstanceKey] = call;
-        
-        call.AddParticipant(Context.ConnectionId);
-
-        if (call.CheckAllReady())
+        if (call != null)
         {
-            await Clients.Group(callId).SendAsync("StartSimplePeerConnection", call.GetInitiator());
+            await Groups.AddToGroupAsync(Context.ConnectionId, callId);
+
+            Context.Items[CallInstanceKey] = call;
+        
+            call.AddParticipant(Context.ConnectionId);
+
+            if (call.CheckAllReady())
+            {
+                await Clients.Group(callId).SendAsync("StartSimplePeerConnection", call.GetInitiator());
+            }   
         }
 
         await base.OnConnectedAsync();
@@ -39,21 +42,27 @@ public class CallHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        ConferenceCall call = (ConferenceCall)Context.Items[CallInstanceKey]!;
+        ConferenceCall? call = (ConferenceCall?)Context.Items[CallInstanceKey];
+
+        if (call != null)
+        {
+            _callCoordinator.RemoveCall(call.Id);
         
-        _callCoordinator.RemoveCall(call.Id);
-        
-        await Clients.GroupExcept(call.Id, Context.ConnectionId).SendAsync("PeerDisconnected");
+            await Clients.GroupExcept(call.Id, Context.ConnectionId).SendAsync("PeerDisconnected");   
+        }
         
         await base.OnDisconnectedAsync(exception);
     }
 
     public async Task SendSimplePeerSignal(string data)
     {
-        ConferenceCall call = (ConferenceCall)Context.Items[CallInstanceKey]!;
+        ConferenceCall? call = (ConferenceCall?)Context.Items[CallInstanceKey];
 
-        _logger.LogWarning("Received simple-peer signal from {userId} on call {callId}", Context.ConnectionId, call.Id);
+        if (call != null)
+        {
+            _logger.LogWarning("Received simple-peer signal from {userId} on call {callId}", Context.ConnectionId, call.Id);
         
-        await Clients.GroupExcept(call.Id, Context.ConnectionId).SendAsync("ReceiveSimplePeerSignal", data);
+            await Clients.GroupExcept(call.Id, Context.ConnectionId).SendAsync("ReceiveSimplePeerSignal", data);   
+        }
     }
 }
