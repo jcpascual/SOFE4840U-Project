@@ -63,6 +63,16 @@ public class CallCoordinatorService
         GetUserIndexState(user).Status = status;
     }
 
+    public string? GetUserCallId(ConferenceUser user)
+    {
+        return GetUserIndexState(user).CallId;
+    }
+
+    public void SetUserCallId(ConferenceUser user, string? callId)
+    {
+        GetUserIndexState(user).CallId = callId;
+    }
+
     public ConferenceCall CreateCall()
     {
         string GenerateRandomId()

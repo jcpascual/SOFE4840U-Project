@@ -1,4 +1,4 @@
-﻿@page
+@page
 @using Conference.Models
 @using Conference.Services
 @inject CallCoordinatorService CallCoordinator
@@ -22,7 +22,7 @@
     {
         if (CallCoordinator.IsUserAvailable(contactUser))
         {
-            <li><a href="#">@contactUser.Username</a></li>
+            <li><a class="call-user-link" data-target-user="@contactUser.Id" href="#">@contactUser.Username</a></li>
         }
         else
         {
@@ -44,13 +44,59 @@
     </div>
 </div>
 
+<div id="call-request-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Call</h5>
+            </div>
+            <div class="modal-body">
+                <p>You are being called by <span id="call-request-name">Unknown</span>.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#" type="button" class="btn btn-danger" id="call-request-deny-button">Deny</a>
+                <a href="#" type="button" class="btn btn-success" id="call-request-accept-button">Accept</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="call-initiator-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Calling</h5>
+            </div>
+            <div class="modal-body">
+                <p>Waiting for the other party to pick up.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="call-initiator-deny-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Call Failed</h5>
+            </div>
+            <div class="modal-body">
+                <p>The other party did not pick up the call.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts
 {
     <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
-    
+
     <script>
         const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/index").build();
+        var callInitiator = false;
         
         connection.on("DisconnectDuplicate", function (data) {
             $("#dupe-error-modal").modal({backdrop: 'static', keyboard: false});
@@ -61,8 +107,50 @@
             connection.stop();
         });
         
+        connection.on("CallRequestReceived", function (callId, initiator) {
+            currentRequestedCallId = callId;
+            
+            $("#call-request-name").text(initiator);
+            
+            $("#call-request-modal").modal({backdrop: 'static', keyboard: false});
+            $("#call-request-modal").modal('show');
+        });
+        
+        connection.on("CallRequestAccepted", function (callId) {
+            window.location.href = "/call/" + callId;
+        });
+        
+        connection.on("CallRequestDenied", function (callId) {
+            $("#call-initiator-modal").modal('hide');
+            $("#call-request-modal").modal('hide');
+            
+            if (callInitiator) {
+                $("#call-initiator-deny-modal").modal('show');
+            }
+            
+            connection.invoke("ResetStateAfterDeny");
+        });
+        
         connection.start().catch(function (err) {
             return console.error(err);
+        });
+        
+        $(".call-user-link").click(function() {
+            let targetId = $(this).data('target-user')
+            connection.invoke("InitiateCallRequest", Number(targetId));
+            
+            $("#call-initiator-modal").modal({backdrop: 'static', keyboard: false});
+            $("#call-initiator-modal").modal('show');
+            
+            callInitiator = true;
+        });
+        
+        $("#call-request-deny-button").click(function () {
+            connection.invoke("TargetCallDeny");
+        });
+        
+        $("#call-request-accept-button").click(function () {
+            connection.invoke("TargetCallAccept");
         });
     </script>
 }

@@ -13,4 +13,10 @@ public class ConferenceUserIndexState
         get;
         set;
     } = ConferenceUserStatus.Offline;
+
+    public string? CallId
+    {
+        get;
+        set;
+    } = null;
 }
