@@ -56,8 +56,10 @@
 {
     <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
     <script src="~/lib/simple-peer/simplepeer.min.js"></script>
+    <script src="~/js/call-chrome-shim.js"></script>
 
     <script>
+        const worker = new Worker("../js/call-worker.js");
         const callId = "@Model.CallId";
 
         const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/call?callId=" + callId).build();
@@ -69,14 +71,18 @@
             p = new window.SimplePeer({
                 initiator: connection.connectionId === initiatorId,
                 trickle: false,
-                iceServers: [
-                     {
-                       urls: [
-                         'stun:stun.l.google.com:19302',
-                         'stun:global.stun.twilio.com:3478'
-                       ]
-                     }
-                   ]
+                config: {
+                    iceServers: [
+                        {
+                            urls: [
+                                'stun:stun.l.google.com:19302',
+                                'stun:global.stun.twilio.com:3478'
+                            ]
+                        }
+                    ],
+                    sdpSemantics: 'unified-plan',
+                    encodedInsertableStreams: true
+                }
             });
             
             p.on('error', err => console.log('error', err));
@@ -109,6 +115,12 @@
                         video: true,
                     }).then(function (stream) {
                         p.addStream(stream);
+                        
+                        for (const track of stream.getTracks()) {
+                            let submap = p._senderMap.get(track);
+                            let sender = submap.get(stream);
+                            sender.transform = new RTCRtpScriptTransform(worker, {side: "send"});
+                        }
                     }).catch(function (err) {
                         console.error(err);
                     });
@@ -129,7 +141,12 @@
                 const video = document.querySelector('#remoteVideo');
                 video.srcObject = stream;
                 
+                for (const receiver of p._pc.getReceivers()) {
+                    receiver.transform = new RTCRtpScriptTransform(worker, {side: "receive"});
+                }
+                
                 video.play();
+                
             })
             
             p.on('error', (error) => {
