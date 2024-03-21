@@ -1,5 +1,6 @@
 using Conference.Models;
 using Conference.Services;
+using Isopoh.Cryptography.Argon2;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -43,7 +44,7 @@ public class RegisterModel : PageModel
             return Redirect("/register?result=" + RegisterResult.UsernameTaken);
         }
         
-        _databaseService.InsertUser(username, password);
+        _databaseService.InsertUser(username, Argon2.Hash(password));
         
         return Redirect("/register?result=" + RegisterResult.Success);
     }

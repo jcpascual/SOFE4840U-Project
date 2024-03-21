@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Conference.Models;
 using Conference.Services;
+using Isopoh.Cryptography.Argon2;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +42,7 @@ public class LoginModel : PageModel
             return Redirect("/login?fail=true");
         }
 
-        if (password != user.Password)
+        if (!Argon2.Verify(user.Password, password))
         {
             return Redirect("/login?fail=true");
         }
