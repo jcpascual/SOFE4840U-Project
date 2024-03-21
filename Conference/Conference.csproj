@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
       <PackageReference Include="MySqlConnector" Version="2.3.5" />
       <PackageReference Include="MySqlConnector.DependencyInjection" Version="2.3.5" />
       <PackageReference Include="MySqlConnector.Logging.Microsoft.Extensions.Logging" Version="2.1.0" />
