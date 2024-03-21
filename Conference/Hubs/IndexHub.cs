@@ -135,6 +135,8 @@ public class IndexHub : Hub
         string callId = _coordinatorService.GetUserCallId(user)!;
 
         _logger.LogWarning("User {initiator} denied call {id}", user.Username, callId);
+        
+        _coordinatorService.RemoveCall(callId);
 
         await Clients.Group("call-" + callId).SendAsync("CallRequestDenied");
     }
