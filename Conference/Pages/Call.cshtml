@@ -117,9 +117,11 @@
                         p.addStream(stream);
                         
                         for (const track of stream.getTracks()) {
-                            let submap = p._senderMap.get(track);
-                            let sender = submap.get(stream);
-                            sender.transform = new RTCRtpScriptTransform(worker, {side: "send"});
+                            let sender = p._senderMap.get(track).get(stream);
+                            sender.transform = new RTCRtpScriptTransform(worker, {
+                                side: "send",
+                                name: "encryptTransform"
+                            });
                         }
                     }).catch(function (err) {
                         console.error(err);
@@ -142,7 +144,10 @@
                 video.srcObject = stream;
                 
                 for (const receiver of p._pc.getReceivers()) {
-                    receiver.transform = new RTCRtpScriptTransform(worker, {side: "receive"});
+                    receiver.transform = new RTCRtpScriptTransform(worker, {
+                        side: "receive",
+                        name: "decryptTransform"
+                    });
                 }
                 
                 video.play();
