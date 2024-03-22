@@ -10,12 +10,12 @@ namespace Conference.Pages;
 public class CallModel : PageModel
 {
     private readonly CallCoordinatorService _coordinatorService;
-    
-    public string CallId
+
+    public ConferenceCall Call
     {
         get;
         set;
-    } = "";
+    }
 
     public CallModel(CallCoordinatorService coordinatorService)
     {
@@ -24,14 +24,14 @@ public class CallModel : PageModel
 
     public IActionResult OnGet(string callId)
     {
-        CallId = callId;
-
         ConferenceCall? call = _coordinatorService.GetCall(callId);
 
         if (call == null)
         {
             return NotFound();
         }
+
+        Call = call;
         
         return Page();
     }
