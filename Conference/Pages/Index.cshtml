@@ -65,6 +65,24 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
+                <h5 class="modal-title">Create a Call</h5>
+            </div>
+            <div class="modal-body">
+                  <label for="call-initiator-password-field" class="form-label">Call Password (leave empty for no password)</label>
+                  <input type="password" class="form-control" id="call-initiator-password-field">
+            </div>
+            <div class="modal-footer">
+                <a href="#" type="button" class="btn btn-secondary" id="call-initiator-cancel-button">Cancel</a>
+                <a href="#" type="button" class="btn btn-primary" id="call-initiator-call-button">Call</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="call-initiator-wait-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
                 <h5 class="modal-title">Calling</h5>
             </div>
             <div class="modal-body">
@@ -96,7 +114,8 @@
 
     <script>
         const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/index").build();
-        var callInitiator = false;
+        let callInitiator = false;
+        let targetId;
         
         connection.on("DisconnectDuplicate", function (data) {
             $("#dupe-error-modal").modal({backdrop: 'static', keyboard: false});
@@ -117,11 +136,21 @@
         });
         
         connection.on("CallRequestAccepted", function (callId) {
-            window.location.href = "/call/" + callId;
+            const password = $("#call-initiator-password-field").val();
+            
+            let anchor;
+            
+            if (callInitiator && password.length > 0) {
+                anchor = "#pw-" + btoa(password);
+            } else {
+                anchor = "";
+            }
+            
+            window.location.href = "/call/" + callId + anchor;
         });
         
         connection.on("CallRequestDenied", function (callId) {
-            $("#call-initiator-modal").modal('hide');
+            $("#call-initiator-wait-modal").modal('hide');
             $("#call-request-modal").modal('hide');
             
             if (callInitiator) {
@@ -136,13 +165,28 @@
         });
         
         $(".call-user-link").click(function() {
-            let targetId = $(this).data('target-user')
-            connection.invoke("InitiateCallRequest", Number(targetId));
+            $("#call-initiator-password-field").val("");
             
-            $("#call-initiator-modal").modal({backdrop: 'static', keyboard: false});
             $("#call-initiator-modal").modal('show');
             
+            targetId = $(this).data('target-user');
+        });
+        
+        $("#call-initiator-call-button").click(function () {
+            $("#call-initiator-modal").modal('hide');
+            
+            const password = $("#call-initiator-password-field").val();
+
+            connection.invoke("InitiateCallRequest", Number(targetId), password.length > 0);
+            
+            $("#call-initiator-wait-modal").modal({backdrop: 'static', keyboard: false});
+            $("#call-initiator-wait-modal").modal('show');
+            
             callInitiator = true;
+        });
+        
+        $("#call-initiator-cancel-button").click(function () {
+            $("#call-initiator-modal").modal('hide');
         });
         
         $("#call-request-deny-button").click(function () {

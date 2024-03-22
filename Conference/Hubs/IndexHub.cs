@@ -69,7 +69,7 @@ public class IndexHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task InitiateCallRequest(int targetId)
+    public async Task InitiateCallRequest(int targetId, bool hasPassword)
     {
         ConferenceUser thisUser = (ConferenceUser)Context.Items[UserInstanceKey]!;
 
@@ -99,9 +99,11 @@ public class IndexHub : Hub
         }
 
         ConferenceCall call = _coordinatorService.CreateCall();
-
+        
         _logger.LogWarning("User {initiator} is calling {target} (call {id})", thisUser.Username, targetUser.Username,
             call.Id);
+        
+        call.SetHasPassword(hasPassword);
 
         _coordinatorService.SetUserStatus(targetUser, ConferenceUserStatus.InCallRequest);
         _coordinatorService.SetUserStatus(thisUser, ConferenceUserStatus.InCallRequest);
