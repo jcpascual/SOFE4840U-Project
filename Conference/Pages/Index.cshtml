@@ -1,4 +1,4 @@
-@page
+﻿@page
 @using Conference.Models
 @using Conference.Services
 @inject CallCoordinatorService CallCoordinator
@@ -20,14 +20,16 @@
 <ul>
     @foreach (ConferenceUser contactUser in contactsUsers)
     {
-        if (CallCoordinator.IsUserAvailable(contactUser))
+        /*if (CallCoordinator.IsUserAvailable(contactUser))
         {
             <li><a class="call-user-link" data-target-user="@contactUser.Id" href="#">@contactUser.Username</a></li>
         }
         else
         {
             <li>@contactUser.Username (offline)</li>
-        }
+        }*/
+        
+        <li><a class="call-user-link" data-target-user="@contactUser.Id" href="#">@contactUser.Username</a></li>
     }
 </ul>
 
@@ -68,7 +70,7 @@
                 <h5 class="modal-title">Create a Call</h5>
             </div>
             <div class="modal-body">
-                  <label for="call-initiator-password-field" class="form-label">Call Password (leave empty for no password)</label>
+                  <label for="call-initiator-password-field" class="form-label">Call Password (leave empty for no password, but the call will not be end-to-end encrypted)</label>
                   <input type="password" class="form-control" id="call-initiator-password-field">
             </div>
             <div class="modal-footer">
