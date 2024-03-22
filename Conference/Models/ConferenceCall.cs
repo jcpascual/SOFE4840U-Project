@@ -12,6 +12,7 @@ public class ConferenceCall
 
     private readonly int _expectedSize;
     private readonly ConcurrentBag<string> _participants = new ConcurrentBag<string>();
+    private bool _hasPassword = false;
     
     public ConferenceCall(string id, int expectedSize)
     {
@@ -39,5 +40,15 @@ public class ConferenceCall
         }
 
         return initiatorId;
+    }
+
+    public bool GetHasPassword()
+    {
+        return _hasPassword;
+    }
+
+    public void SetHasPassword(bool hasPassword)
+    {
+        _hasPassword = hasPassword;
     }
 }
