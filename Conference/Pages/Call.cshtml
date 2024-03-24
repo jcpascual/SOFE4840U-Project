@@ -2,52 +2,22 @@
 @model CallModel
 @{
     ViewData["Title"] = "Call";
+    ViewData["UseStandardLayout"] = false;
+    ViewData["BodyClasses"] = "vh-100 m-0 overflow-hidden";
 }
 
-<h2>Call</h2>
-
-<div class="container">
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="text-tab" data-bs-toggle="tab" data-bs-target="#text" type="button" role="tab" aria-controls="text" aria-selected="true">Text</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="av-tab" data-bs-toggle="tab" data-bs-target="#av" type="button" role="tab" aria-controls="av" aria-selected="false">Video</button>
-        </li>
-    </ul>
-    <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active" id="text" role="tabpanel" aria-labelledby="text-tab">
-            <div class="row p-1">
-                <div class="col-1">User</div>
-                <div class="col-5"><input type="text" id="userInput" /></div>
-            </div>
-            <div class="row p-1">
-                <div class="col-1">Message</div>
-                <div class="col-5"><input type="text" class="w-100" id="messageInput" /></div>
-            </div>
-            <div class="row p-1">
-                <div class="col-6 text-end">
-                    <input type="button" id="sendButton" value="Send Message" />
-                </div>
-            </div>
-            <div class="row p-1">
-                <div class="col-6">
-                    <hr />
-                </div>
-            </div>
-            <div class="row p-1">
-                <div class="col-6">
-                    <ul id="messagesList"></ul>
-                </div>
-            </div>
+<div class="row gx-0 h-100">
+    <div class="col-12 col-md-7 col-lg-9 h-100">
+        <video id="remoteVideo" class="w-100 h-100 bg-secondary" playsinline></video>
+    </div>
+    <div class="col d-flex flex-column">
+        <div class="m-1 h-75" id="chatArea"></div>
+        <div class="flex-grow-1 m-1">
+            <textarea class="w-100 h-100" id="textarea"></textarea>
         </div>
-        <div class="tab-pane fade" id="av" role="tabpanel" aria-labelledby="av-tab">
-            <div class="row p-1">
-                <div class="col-6">
-                    <input type="button" id="videoButton" value="Start Video" />
-                </div>
-            </div>
-            <video id="remoteVideo" class="w-100" playsinline></video>
+        <div class="m-2 gx-1">
+            <a href="#" type="button" class="btn btn-primary" id="start-video-button">Start Video</a>
+            <a href="#" type="button" class="btn btn-danger" id="hang-up-button">Hang Up</a>
         </div>
     </div>
 </div>
@@ -78,6 +48,7 @@
     <script>
         const worker = new Worker("../js/call-worker.js");
         const callId = "@Model.Call.Id";
+        const username = "@HttpContext.User!.Identity!.Name";
 
         const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/call?callId=" + callId).build();
         
@@ -115,18 +86,26 @@
             });
             
             p.on('connect', () => {
-                document.getElementById("sendButton").disabled = false;
-                
-                document.getElementById("sendButton").addEventListener("click", function (event) {
-                    const user = document.getElementById("userInput").value;
-                    const message = document.getElementById("messageInput").value;
-                    
-                    p.send(user + ' says ' + message);
-                    
-                    event.preventDefault();
+                $("#textarea").keyup(function (e) {
+                    var code = e.keyCode ? e.keyCode : e.which;
+                    if (code == 13) {
+                        let text = $(this).val();
+                        text = text.substring(0, text.length - 1);
+                        
+                        const data = {
+                            username: username,
+                            message: text
+                        };
+                        
+                        p.send(JSON.stringify(data));
+                        
+                        $(this).val("");
+                        
+                        appendChatData(data);
+                    }
                 });
                 
-                document.getElementById("videoButton").addEventListener("click", function (event) {
+                $("#start-video-button").click(function (e) {
                     navigator.mediaDevices.getUserMedia({
                         audio: false,
                         video: true,
@@ -143,17 +122,17 @@
                     }).catch(function (err) {
                         console.error(err);
                     });
-                    event.preventDefault();
+                });
+                
+                $("#hang-up-button").click(function (e) {
+                    window.location.href = "/";
                 });
             });
             
             p.on('data', (data) => {
-                var li = document.createElement("li");
-                document.getElementById("messagesList").appendChild(li);
-                // We can assign user-supplied strings to an element's textContent because it
-                // is not interpreted as markup. If you're assigning in any other way, you 
-                // should be aware of possible script injection concerns.
-                li.textContent = data;
+                const dataIn = JSON.parse(data);
+                
+                appendChatData(dataIn);
             });
             
             p.on('stream', stream => {
@@ -225,6 +204,10 @@
             connection.start().catch(function (err) {
                 return console.error(err);
             });
+        }
+        
+        function appendChatData(data) {
+            $("#chatArea").append("<p><strong>" + data.username + ": </strong>" + data.message + "</p>");
         }
     </script>
 
