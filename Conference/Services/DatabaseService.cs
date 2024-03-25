@@ -103,4 +103,17 @@ public class DatabaseService
 
         return contacts;
     }
+    
+    public void InsertContact(ConferenceUser ownerUser, ConferenceUser targetUser)
+    {
+        using MySqlConnection connection = _dataSource.OpenConnection();
+        using MySqlCommand command = connection.CreateCommand();
+
+        command.CommandText = @"INSERT INTO contacts(ownerId, targetId) VALUES(@ownerId, @targetId);";
+        
+        command.Parameters.AddWithValue("@ownerId", ownerUser.Id);
+        command.Parameters.AddWithValue("@targetId", targetUser.Id);
+        
+        command.ExecuteNonQuery();
+    }
 }
