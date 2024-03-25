@@ -6,7 +6,8 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
-
+    ViewData["ShowAddContact"] = true;
+    
     ConferenceUser user = Database.GetUser(Model.User.Identity!.Name!)!;
     
     List<ConferenceContact> contacts = Database.GetContactsForUser(user);

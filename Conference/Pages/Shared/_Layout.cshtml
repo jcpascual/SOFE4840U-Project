@@ -1,5 +1,6 @@
 ﻿@{
     bool showAuthentication = (bool)(ViewData["ShowAuthentication"] ?? true);
+    bool showAddContact = (bool)(ViewData["ShowAddContact"] ?? false);
     bool useStandardLayout = (bool)(ViewData["UseStandardLayout"] ?? true);
 
     string bodyClasses = (string)(ViewData["BodyClasses"] ?? "");
@@ -31,6 +32,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
                         </li>
+                        @if (showAddContact)
+                        {
+                            <li class="nav-item">
+                                <a href="/add-contact" class="nav-link text-dark">Add Contact</a>
+                            </li>
+                        }
                     </ul>
                     <ul class="navbar-nav">
                         @if (showAuthentication && Context.User.Identity != null && Context.User.Identity.IsAuthenticated)
