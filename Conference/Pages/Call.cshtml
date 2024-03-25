@@ -39,6 +39,38 @@
     </div>
 </div>
 
+<div id="peer-disconnected-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Disconnected</h5>
+            </div>
+            <div class="modal-body">
+                <p>The other party disconnected from the call.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="/" type="button" class="btn btn-primary">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="error-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Error</h5>
+            </div>
+            <div class="modal-body">
+                <p>An error has occurred. You have been disconnected from the call.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="/" type="button" class="btn btn-primary">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts
 {
     <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
@@ -151,6 +183,8 @@
             })
             
             p.on('error', (error) => {
+                handleError();
+                
                 console.error(error.message);
                 
                 connection.stop();
@@ -163,6 +197,9 @@
         
         connection.on("PeerDisconnected", function (data) {
             p.destroy();
+            
+            $("#peer-disconnected-modal").modal({backdrop: 'static', keyboard: false});
+            $("#peer-disconnected-modal").modal('show');
         });
         
         async function deriveKey(password) {
@@ -202,12 +239,18 @@
             });
             
             connection.start().catch(function (err) {
+                handleError();
                 return console.error(err);
             });
         }
         
         function appendChatData(data) {
             $("#chatArea").append("<p><strong>" + data.username + ": </strong>" + data.message + "</p>");
+        }
+        
+        function handleError() {
+            $("#error-modal").modal({backdrop: 'static', keyboard: false});
+            $("#error-modal").modal('show');
         }
     </script>
 
