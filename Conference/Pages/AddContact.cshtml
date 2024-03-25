@@ -1,0 +1,45 @@
+@page "/add-contact"
+@model AddContactModel
+@{
+    ViewData["Title"] = "Add Contact";
+}
+
+<h2>Add Contact</h2>
+
+<form action="/add-contact" method="POST">
+    @Html.AntiForgeryToken()
+    <div class="container">
+        @if (Model.ContactResult == AddContactModel.AddContactResult.NotFound)
+        {
+            <div class="alert alert-danger" role="alert">
+                Could not find the user. Please check that you have entered their username correctly.
+            </div>
+        }
+        else if (Model.ContactResult == AddContactModel.AddContactResult.AlreadyExists)
+        {
+            <div class="alert alert-danger" role="alert">
+                This user is already a contact.
+            </div>
+        }
+        else if (Model.ContactResult == AddContactModel.AddContactResult.Success)
+        {
+            <div class="alert alert-success" role="alert">
+                Success!
+            </div>
+        }
+        
+        <div class="container">
+            <div class="row p-1">
+                <div class="col-1"><label for="usernameInput">Username </label></div>
+            </div>
+            <div class="row p-1">
+                <div class="col-5"><input type="text" name="username" id="usernameInput" class="w-100"/></div>
+            </div>
+            <div class="row p-1">
+                <div class="col-5 text-end">
+                    <input type="submit" id="addButton" value="Add"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
