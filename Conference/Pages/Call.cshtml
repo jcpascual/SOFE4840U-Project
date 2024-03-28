@@ -78,15 +78,20 @@
     <script src="~/js/call-chrome-shim.js"></script>
 
     <script>
+        // Create a new worker using our worker code.
         const worker = new Worker("../js/call-worker.js");
+        
+        // Declare constants.
         const callId = "@Model.Call.Id";
         const username = "@HttpContext.User!.Identity!.Name";
-
+        
+        // Build a SignalR connection to the call hub.
         const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/call?callId=" + callId).build();
         
         var localStream;
         var p;
         
+        // When the signal to start a simple-peer connection is received, create a new SimplePeer instance.
         connection.on("StartSimplePeerConnection", function (initiatorId) {
             p = new window.SimplePeer({
                 initiator: connection.connectionId === initiatorId,
@@ -112,15 +117,18 @@
                 
                 console.log('SP-SIGNAL', json);
                 
+                // Forward any signals to the hub.
                 connection.invoke("SendSimplePeerSignal", json).catch(function (err) {
                     return console.error(err.toString());
                 });
             });
             
             p.on('connect', () => {
+                // Detect enter key presses when the textarea is focused..
                 $("#textarea").keyup(function (e) {
                     var code = e.keyCode ? e.keyCode : e.which;
                     if (code == 13) {
+                        // Remove the trailing new line character.
                         let text = $(this).val();
                         text = text.substring(0, text.length - 1);
                         
@@ -129,8 +137,10 @@
                             message: text
                         };
                         
+                        // Send the data to the peer.
                         p.send(JSON.stringify(data));
                         
+                        // Clear the textarea.
                         $(this).val("");
                         
                         appendChatData(data);
@@ -138,12 +148,14 @@
                 });
                 
                 $("#start-video-button").click(function (e) {
+                    // Request access to the camera and microphone.
                     navigator.mediaDevices.getUserMedia({
                         audio: false,
                         video: true,
                     }).then(function (stream) {
                         p.addStream(stream);
                         
+                        // Allow our worker to transform the data on every sender.
                         for (const track of stream.getTracks()) {
                             let sender = p._senderMap.get(track).get(stream);
                             sender.transform = new RTCRtpScriptTransform(worker, {
@@ -168,9 +180,11 @@
             });
             
             p.on('stream', stream => {
+                // Set the video source.
                 const video = document.querySelector('#remoteVideo');
                 video.srcObject = stream;
                 
+                // Allow our worker to decrypt the data from every receiver.
                 for (const receiver of p._pc.getReceivers()) {
                     receiver.transform = new RTCRtpScriptTransform(worker, {
                         side: "receive",
@@ -178,6 +192,7 @@
                     });
                 }
                 
+                // Play the video.
                 video.play();
                 
             })
@@ -204,7 +219,8 @@
         
         async function deriveKey(password) {
             const encoder = new TextEncoder();
-        
+            
+            // Import the password as a key for use with PBKDF2.
             const keyMaterial = await crypto.subtle.importKey(
                 "raw",
                 encoder.encode(password),
@@ -212,9 +228,11 @@
                 false,
                 ["deriveBits", "deriveKey"],
             );
-        
+
+            // Generate a salt from the SHA-256 hash of the call ID. 
             const salt = await crypto.subtle.digest("SHA-256", encoder.encode(callId));
-        
+
+            // Derive a key using PBDKDF2 for use with AES-GCM.
             return crypto.subtle.deriveKey(
                 {
                     name: "PBKDF2",
@@ -232,12 +250,14 @@
         }
         
         function connectSignalR(password) {
+            // Derive the key and send it to the worker.
             deriveKey(password).then(function (key) {
                 worker.postMessage({
                     callkey: key
                 });
             });
             
+            // Connect to the SignalR hub.
             connection.start().catch(function (err) {
                 handleError();
                 return console.error(err);
@@ -260,6 +280,7 @@
             $(document).ready(function() {
                 const hash = $(location).attr("hash");
                 
+                // Grab the password from the anchor, if it exists.
                 if (hash.startsWith("#pw-")) {
                     const passwordEncoded = hash.substring(4);
                     const password = atob(passwordEncoded);
@@ -284,6 +305,7 @@
     {
         <script>
             $(document).ready(function() {
+                // Use a constant password if none is specified.
                 connectSignalR("SOFE4840U");
             });
         </script>
