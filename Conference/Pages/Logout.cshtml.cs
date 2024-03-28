@@ -9,6 +9,7 @@ public class LogoutModel : PageModel
 {
     public async Task<IActionResult> OnGetAsync()
     {
+        // Clear the authentication cookie.
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
         return Page();
