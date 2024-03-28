@@ -37,6 +37,7 @@ public class RegisterModel : PageModel
 
     public IActionResult OnPost(string username, string password)
     {
+        // Check if this user already exists.
         ConferenceUser? potentialUser = _databaseService.GetUser(username);
 
         if (potentialUser != null)
@@ -44,6 +45,7 @@ public class RegisterModel : PageModel
             return Redirect("/register?result=" + RegisterResult.UsernameTaken);
         }
         
+        // Insert a new user into the database with this username and a hashed password.
         _databaseService.InsertUser(username, Argon2.Hash(password));
         
         return Redirect("/register?result=" + RegisterResult.Success);
