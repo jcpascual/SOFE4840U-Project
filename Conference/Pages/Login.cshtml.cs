@@ -35,6 +35,7 @@ public class LoginModel : PageModel
 
     public async Task<IActionResult> OnPost(string username, string password)
     {
+        // Attempt to get the user associated with the username.
         ConferenceUser? user = _databaseService.GetUser(username);
 
         if (user == null)
@@ -42,24 +43,28 @@ public class LoginModel : PageModel
             return Redirect("/login?fail=true");
         }
 
+        // Verify the hash.
         if (!Argon2.Verify(user.Password, password))
         {
             return Redirect("/login?fail=true");
         }
         
+        // Create a list of claims.
         List<Claim> claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, user.Username)
         };
 
+        // Create a new identity.
         ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
+        
         var authProperties = new AuthenticationProperties
         {
             AllowRefresh = true,
             IssuedUtc = DateTimeOffset.UtcNow
         };
 
+        // Set the authentication cookie.
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(claimsIdentity), authProperties);
 
